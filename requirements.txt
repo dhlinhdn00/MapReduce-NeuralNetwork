@@ -1,0 +1,9 @@
+mrjob
+torch
+torchvision
+pillow
+tdqm
+ipykernel
+jupyter
+kagglehub
+shutil

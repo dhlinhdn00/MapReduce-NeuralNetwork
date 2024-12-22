@@ -1,0 +1,6 @@
+**/logs/
+**/logs/
+data/
+env/
+__ref/
+checkpoints/
