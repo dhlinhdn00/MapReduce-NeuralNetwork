@@ -1,6 +1,11 @@
 **/logs/
-**/logs/
+**/log/
 data/
 env/
 __ref/
 checkpoints/
+**/__pycache__/
+src/mapreduce_preprocess/node_env.zip
+src/mapreduce_preprocess
+*.json
+*.log
