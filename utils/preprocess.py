@@ -2,7 +2,7 @@
 import os
 import sys
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageChops
 import argparse
 import random
 from PIL import ImageEnhance
@@ -78,13 +78,13 @@ def augment_image(image):
         max_shift = 3  # pixels
         shift_x = random.randint(-max_shift, max_shift)
         shift_y = random.randint(-max_shift, max_shift)
-        aug_image = ImageOps.offset(aug_image, shift_x, shift_y)
+        aug_image = ImageChops.offset(aug_image, shift_x, shift_y)
         
         # Apply random scaling
         scale_factor = random.uniform(0.9, 1.1)
         new_size = (int(28 * scale_factor), int(28 * scale_factor))
-        aug_image = aug_image.resize(new_size, Image.ANTIALIAS)
-        aug_image = ImageOps.fit(aug_image, (28, 28), Image.ANTIALIAS)
+        aug_image = aug_image.resize(new_size, Image.LANCZOS)
+        aug_image = ImageOps.fit(aug_image, (28, 28), Image.LANCZOS)
         
         # Apply random shearing
         shear_factor = random.uniform(-10, 10)
@@ -96,16 +96,48 @@ def augment_image(image):
             fillcolor=0
         )
         
-        # Apply horizontal flipping with a small probability
-        if random.random() > 0.5:
-            aug_image = ImageOps.mirror(aug_image)
-        
+        # Apply elastic distortion
+        aug_image = apply_elastic_distortion(aug_image)
+
         # Add Gaussian noise
         aug_image = add_gaussian_noise(aug_image)
         
         augmented.append(aug_image)
     
     return augmented
+
+def apply_elastic_distortion(image, alpha=34, sigma=4):
+    """
+    Apply elastic distortion to the image.
+    
+    Parameters:
+    - image: PIL Image object.
+    - alpha: Scaling factor for distortion (higher = more distortion).
+    - sigma: Standard deviation for the Gaussian filter.
+    
+    Returns:
+    - Distorted PIL Image.
+    """
+    np_image = np.array(image).astype(np.float32)
+
+    # Generate random displacement fields
+    random_x = np.random.rand(*np_image.shape) * 2 - 1
+    random_y = np.random.rand(*np_image.shape) * 2 - 1
+
+    # Smooth the displacement fields
+    from scipy.ndimage import gaussian_filter
+    dx = gaussian_filter(random_x, sigma) * alpha
+    dy = gaussian_filter(random_y, sigma) * alpha
+
+    # Create meshgrid and apply distortions
+    x, y = np.meshgrid(np.arange(np_image.shape[1]), np.arange(np_image.shape[0]))
+    indices = np.array([y + dy, x + dx]).astype(np.float32)
+
+    # Map coordinates to the image
+    from scipy.ndimage import map_coordinates
+    distorted_image = map_coordinates(np_image, indices, order=1, mode='reflect')
+
+    return Image.fromarray(distorted_image.astype(np.uint8))
 
 def add_gaussian_noise(image, mean=0, std=0.05):
     """

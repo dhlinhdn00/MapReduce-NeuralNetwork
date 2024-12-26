@@ -74,14 +74,17 @@ def test_model(model_path="model_local.json", test_file="mnist_test.txt"):
     avg_loss = total_loss / N
 
     print(f"Test Accuracy: {accuracy*100:.2f}%")
-    print(f"Test Avg Loss: {avg_loss:.4f}")
+    # print(f"Test Avg Loss: {avg_loss:.4f}")
 
 
 if __name__ == "__main__":
     import sys
 
     # model_path = "/home/meos/Documents/MR_NN/checkpoints/model_mr.json"
-    model_path = "/home/meos/Documents/MR_NN/layerwise/model_l1.json"
+    # model_path = "/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/model_finetune.json"
+    model_path = "/home/meos/Documents/MapReduceNeuralNetwork/src/mapreduce_train/model.json"
+    # model_path = "/home/meos/Documents/MapReduceNeuralNetwork/checkpoints/traditional_train_model_np.json"
+    # model_path = "/home/meos/Documents/MapReduceNeuralNetwork/src/aggregator_mapreduce_train/model.json"
     test_file = "/home/meos/Documents/MR_NN/data/processed/mnist_test.txt"
     if len(sys.argv) >= 2:
         model_path = sys.argv[1]
