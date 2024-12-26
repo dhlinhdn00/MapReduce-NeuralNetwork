@@ -4,34 +4,6 @@ import json
 import psutil
 import time
 import os
-os.sched_setaffinity(0, {0, 1})  # 2 CPU cores
-import resource
-resource.setrlimit(resource.RLIMIT_AS, (768 * 1024 ** 2, 768 * 1024 ** 2))
-
-
-def load_data_generator(file_path, batch_size=100):
-    """
-    Load data in batches to avoid memory issues.
-    """
-    
-    with open(file_path, 'r') as f:
-        batch_X = []
-        batch_y = []
-        for line in f:
-            parts = line.strip().split()
-            label = int(parts[0])
-            pixels = list(map(float, parts[1:]))
-            batch_X.append(pixels)
-            batch_y.append(label)
-            
-            if len(batch_X) == batch_size:
-                yield np.array(batch_X, dtype=np.float32), np.array(batch_y, dtype=np.int32)
-                batch_X = []
-                batch_y = []
-        
-        if batch_X:
-            yield np.array(batch_X, dtype=np.float32), np.array(batch_y, dtype=np.int32)
-
 
 def load_data(file_path):
     X = []
@@ -110,16 +82,19 @@ def train_local(
     train_file="mnist_train.txt",
     epochs=10,
     batch_size=100,
-    learning_rate=0.01,
+    learning_rate=0.001,
     save_model_path="model_local.json"
 ):
-    log_file = r"training_log.csv"
+    log_file = r"/home/meos/Documents/MapReduceNeuralNetwork/src/traditional_train/log/training_log.csv"
 
+    X, y = load_data(train_file)
+    N = X.shape[0]
     input_size = 784
     hidden_size = 128
     output_size = 10
     W1, b1, W2, b2 = init_model(input_size, hidden_size, output_size)
 
+    print(f"Loaded training data with {N} samples.")
     print(f"Start training for {epochs} epochs, batch_size={batch_size}, lr={learning_rate}")
 
     with open(log_file, 'w') as f:
@@ -127,20 +102,24 @@ def train_local(
 
     for epoch in range(epochs):
         epoch_start_time = time.time()
+        indices = np.arange(N)
+        np.random.shuffle(indices)
 
         total_loss = 0.0
         correct_count = 0
-        total_samples = 0
 
-        for batch_X, batch_y in load_data_generator(train_file, batch_size):
-            batch_size_actual = len(batch_y)
+        for start_idx in range(0, N, batch_size):
+            end_idx = min(start_idx + batch_size, N)
+            batch_idx = indices[start_idx:end_idx]
+            batch_X = X[batch_idx]
+            batch_y = y[batch_idx]
 
             acc_grad_W1 = np.zeros_like(W1)
             acc_grad_b1 = np.zeros_like(b1)
             acc_grad_W2 = np.zeros_like(W2)
             acc_grad_b2 = np.zeros_like(b2)
 
-            for i in range(batch_size_actual):
+            for i in range(len(batch_idx)):
                 xi = batch_X[i]
                 yi = batch_y[i]
 
@@ -158,15 +137,14 @@ def train_local(
                 acc_grad_W2 += gW2
                 acc_grad_b2 += gb2
 
-            W1 -= (learning_rate / batch_size_actual) * acc_grad_W1
-            b1 -= (learning_rate / batch_size_actual) * acc_grad_b1
-            W2 -= (learning_rate / batch_size_actual) * acc_grad_W2
-            b2 -= (learning_rate / batch_size_actual) * acc_grad_b2
+            batch_len = len(batch_idx)
+            W1 -= (learning_rate / batch_len) * acc_grad_W1
+            b1 -= (learning_rate / batch_len) * acc_grad_b1
+            W2 -= (learning_rate / batch_len) * acc_grad_W2
+            b2 -= (learning_rate / batch_len) * acc_grad_b2
 
-            total_samples += batch_size_actual
-
-        avg_loss = total_loss / total_samples
-        accuracy = correct_count / total_samples
+        avg_loss = total_loss / N
+        accuracy = correct_count / N
         epoch_end_time = time.time()
         epoch_duration = epoch_end_time - epoch_start_time
         cpu_percent = psutil.cpu_percent(interval=None)
@@ -187,7 +165,7 @@ if __name__ == "__main__":
 
     train_local(
         train_file="./data/processed/mnist_train.txt",
-        epochs=10,
+        epochs=7,
         batch_size=100,
         learning_rate=0.01,
         save_model_path="./checkpoints/traditional_train_model_np.json"
