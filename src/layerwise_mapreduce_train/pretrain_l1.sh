@@ -1,10 +1,10 @@
 #!/bin/bash
-NUM_EPOCHS=50
+NUM_EPOCHS=10
 INPUT_PATH=/user/meos/mr_nn/data/mnist_train.txt
 OUTPUT1_BASE=/user/meos/mr_nn/l1_output/stage1_epoch
 OUTPUT2_BASE=/user/meos/mr_nn/l1_output/stage2_epoch
-LOCAL_MODEL_PATH=/home/meos/Documents/MR_NN/layerwise/model_l1.json
-LOG_DIR=/home/meos/Documents/MR_NN/layerwise/logs
+LOCAL_MODEL_PATH=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/model_l1.json
+LOG_DIR=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/logs
 mkdir -p "$LOG_DIR"
 
 if [ ! -f "$LOCAL_MODEL_PATH" ]; then

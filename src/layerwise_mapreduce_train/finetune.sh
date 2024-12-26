@@ -10,10 +10,10 @@ OUTPUT1_BASE=/user/meos/mr_nn/output/finetune_stage1_epoch
 OUTPUT2_BASE=/user/meos/mr_nn/output/finetune_stage2_epoch
 
 # Đường dẫn file model cục bộ (đã chứa W1,b1, W2,b2)
-MODEL_PATH=/home/meos/Documents/MR_NN/layerwise/model_finetune.json
+MODEL_PATH=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/model_finetune.json
 
 # Thư mục log local
-LOG_DIR=/home/meos/Documents/MR_NN/layerwise/logs
+LOG_DIR=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/logs
 mkdir -p "$LOG_DIR"
 
 # Nếu chưa có model_finetune.json => init
