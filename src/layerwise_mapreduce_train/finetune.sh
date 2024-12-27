@@ -2,21 +2,21 @@
 
 EPOCHS=10
 
-# Đường dẫn input training data trên HDFS
+# Path to input training data on HDFS
 INPUT_PATH=/user/meos/mr_nn/data/mnist_train.txt
 
-# Các thư mục output tạm trên HDFS cho 2-stage aggregator
+# Temporary output directories on HDFS for 2-stage aggregation
 OUTPUT1_BASE=/user/meos/mr_nn/output/finetune_stage1_epoch
 OUTPUT2_BASE=/user/meos/mr_nn/output/finetune_stage2_epoch
 
-# Đường dẫn file model cục bộ (đã chứa W1,b1, W2,b2)
+# Path to the local model file (containing W1, b1, W2, b2)
 MODEL_PATH=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/model_finetune.json
 
-# Thư mục log local
+# Local log directory
 LOG_DIR=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/logs
 mkdir -p "$LOG_DIR"
 
-# Nếu chưa có model_finetune.json => init
+# Initialize model_finetune.json if it doesn't exist
 if [ ! -f "$MODEL_PATH" ]; then
    echo "[FINETUNE] Initializing model_finetune.json..."
    python init_finetune.py
@@ -26,10 +26,10 @@ for ((e=1; e<=EPOCHS; e++))
 do
   echo "=== FINETUNE EPOCH $e / $EPOCHS ==="
 
-  # 1) Upload model lên HDFS để mapper/reducer đọc
+  # 1) Upload model to HDFS for mapper/reducer to access
   hdfs dfs -put -f "$MODEL_PATH" /user/meos/mr_nn/output/model_finetune.json
 
-  # 2) Stage1: Map + Combiner + aggregatorN (n reducers), tạo partial sums
+  # 2) Stage1: Map + Combiner + aggregatorN (n reducers), generate partial sums
   OUT1="${OUTPUT1_BASE}${e}"
   hdfs dfs -rm -r -f "$OUT1" >/dev/null 2>&1
 
@@ -47,7 +47,7 @@ do
     -file aggregatorN_finetune.py \
     -file model_finetune.json
 
-  # 3) Stage2: Map=cat + aggregator1 (1 reducer), update model
+  # 3) Stage2: Map=cat + aggregator1 (1 reducer), update the model
   OUT2="${OUTPUT2_BASE}${e}"
   hdfs dfs -rm -r -f "$OUT2" >/dev/null 2>&1
 
@@ -62,12 +62,12 @@ do
     -file aggregator1_finetune.py \
     -file model_finetune.json
 
-  # 4) Tải output cuối (model + metrics) về local
+  # 4) Download the final output (model + metrics) to local
   EPOCH_OUT_JSON="${LOG_DIR}/finetune_epoch${e}_out.json"
   hdfs dfs -cat "${OUT2}/part-00000" > "$EPOCH_OUT_JSON"
 
-  # 5) Tách model + metrics; ghi đè model_finetune.json
-  python <<EOF
+  # 5) Extract model + metrics; overwrite model_finetune.json
+  python3 <<EOF
 import json
 import sys
 

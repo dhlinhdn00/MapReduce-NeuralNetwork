@@ -8,7 +8,7 @@ LOCAL_MODEL_PATH=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapre
 LOG_DIR=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/logs
 mkdir -p "$LOG_DIR"
 
-# Nếu chưa có model_l2.json => init
+# Initialize model_l2.json if it doesn't exist
 if [ ! -f "$LOCAL_MODEL_PATH" ]; then
     echo "[Init L2] Creating model_l2 with W1,b1 from L1..."
     python init_model_l2.py
@@ -18,10 +18,10 @@ for ((e=1;e<=NUM_EPOCHS;e++))
 do
   echo "=== Pretrain L2: EPOCH $e ==="
   
-  # Tạo thư mục trên HDFS nếu chưa tồn tại
+  # Create directory on HDFS if it doesn't exist
   hdfs dfs -mkdir -p /user/meos/mr_nn/l2_output/
   
-  # Put model lên HDFS
+  # Upload the model to HDFS
   hdfs dfs -put -f "$LOCAL_MODEL_PATH" /user/meos/mr_nn/l2_output/model_l2.json
 
   # (1) Job1: map + combiner + aggregatorN
@@ -57,11 +57,11 @@ do
     -file aggregator1_l2.py \
     -file model_l2.json
 
-  # Lấy output final
+  # Save the final output to local logs
   EPOCH_OUT_JSON="${LOG_DIR}/l2_epoch${e}_out.json"
   hdfs dfs -cat "${OUT2}/part-00000" > "$EPOCH_OUT_JSON"
 
-  # Định nghĩa biến epoch trong Python code
+  # Extract model and metrics; overwrite the local model file
   python <<EOF
 import json
 

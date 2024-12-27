@@ -7,6 +7,7 @@ LOCAL_MODEL_PATH=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapre
 LOG_DIR=/home/meos/Documents/MapReduceNeuralNetwork/src/layerwise_mapreduce_train/logs
 mkdir -p "$LOG_DIR"
 
+# Initialize autoencoder model_l1.json if it doesn't exist
 if [ ! -f "$LOCAL_MODEL_PATH" ]; then
     echo "[Init] Creating autoencoder model_l1.json..."
     python init_autoencoder_l1.py
@@ -16,8 +17,10 @@ for ((e=1;e<=NUM_EPOCHS;e++))
 do
   echo "=== Pretrain L1: EPOCH $e ==="
   
+  # Upload the local model to HDFS
   hdfs dfs -put -f "$LOCAL_MODEL_PATH" /user/meos/mr_nn/l1_output/model_l1.json
 
+  # Stage1: Map + Combiner + aggregatorN (n reducers)
   OUT1=${OUTPUT1_BASE}${e}
   hdfs dfs -rm -r -f "$OUT1"
 
@@ -34,6 +37,7 @@ do
     -file aggregatorN_l1.py \
     -file model_l1.json
 
+  # Stage2: Map=cat + aggregator1 (1 reducer)
   OUT2=${OUTPUT2_BASE}${e}
   hdfs dfs -rm -r -f "$OUT2"
 
@@ -47,16 +51,18 @@ do
     -file aggregator1_l1.py \
     -file model_l1.json
 
+  # Save the final output to local logs
   EPOCH_OUT_JSON="${LOG_DIR}/l1_epoch${e}_out.json"
   hdfs dfs -cat "${OUT2}/part-00000" > "$EPOCH_OUT_JSON"
 
-  python <<EOF
+  # Extract model and metrics; overwrite the local model file
+  python3 <<EOF
 import json
 
 epoch = ${e}
 f_in = "${EPOCH_OUT_JSON}"
 f_model = "${LOCAL_MODEL_PATH}"
-with open(f_in,'r') as fi:
+with open(f_in, 'r') as fi:
     data = json.load(fi)
 model = data.get('model', {})
 metrics = data.get('metrics', {})
