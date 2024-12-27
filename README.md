@@ -62,7 +62,6 @@ This repository includes:
 │   │   ├── combiner.py
 │   │   ├── initialize_model.py
 │   │   ├── mapper.py
-│   │   ├── model_old.json
 │   │   ├── reducer.py
 │   │   └── train.sh
 │   ├── layerwise_mapreduce_train
@@ -101,7 +100,7 @@ This repository includes:
     ├── test.py
     └── visualize.ipynb
 
-6 directories, 43 files
+6 directories, 42 files
 ```
 
 ### Key Directories and Files
