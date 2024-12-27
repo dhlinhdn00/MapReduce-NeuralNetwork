@@ -397,14 +397,6 @@ bash finetune.sh
 - **Insufficient Memory**: Adjust Hadoop's memory settings in the `train.sh` scripts if you encounter memory-related errors.
 - **Data Not Found**: Ensure that the preprocessing step has been completed and the data paths provided to training scripts are correct.
 
-## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request with your enhancements.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
 ---
 
 **Note**: This project was developed and tested on Ubuntu 22.04 with Hadoop 3.3.5 in a single-node configuration. For multi-node setups or other environments, additional configuration may be required.
