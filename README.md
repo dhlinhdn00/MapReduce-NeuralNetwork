@@ -382,20 +382,6 @@ bash finetune.sh
 - **mapper_finetune.py / combiner_finetune.py / aggregatorN_finetune.py**: Scripts for finetuning the model.
 - **finetune.sh / pretrain_l1.sh / pretrain_l2.sh**: Shell scripts to execute respective training stages.
 
-## Logging and Monitoring
-
-- **Log Files**: Training scripts generate log files capturing loss, accuracy, CPU usage, and memory consumption.
-  - Local training logs are printed to the console and saved as specified in the scripts.
-  - MapReduce training logs are saved in the `log` directories within the respective training script folders.
-- **Training Metrics**: Each epoch's metrics are saved in JSON format for easy analysis and visualization.
-
-## Troubleshooting
-
-- **Hadoop Not Starting**: Ensure Java is correctly installed and environment variables are properly set. Check Hadoop logs located in `$HADOOP_HOME/logs`.
-- **Permission Issues**: Run Hadoop commands with appropriate permissions. Avoid using `sudo` unless necessary.
-- **Insufficient Memory**: Adjust Hadoop's memory settings in the `train.sh` scripts if you encounter memory-related errors.
-- **Data Not Found**: Ensure that the preprocessing step has been completed and the data paths provided to training scripts are correct.
-
 ---
 
 **Note**: This project was developed and tested on Ubuntu 22.04 with Hadoop 3.3.5 in a single-node configuration. For multi-node setups or other environments, additional configuration may be required.
